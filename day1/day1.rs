@@ -22,10 +22,20 @@ fn main() {
     }
     numbers.sort();
     println!("{:?}", numbers);
-    let is_914_in = is_value_in_sorted_slice(914, &numbers[..]);
-    println!("{}", is_914_in);
-    let is_3000_in = is_value_in_sorted_slice(3000, &numbers[..]);
-    println!("{}", is_3000_in);
+
+    let mut success: bool = false;
+    let numbers_slice = &numbers[..];
+    for x in numbers_slice {
+        let needed_value: u32 = 2020 - x;
+        success = is_value_in_sorted_slice(needed_value, numbers_slice);
+        if success {
+            println!("{} * {} = {}", x, needed_value, x * needed_value);
+            break;
+        }
+    }
+    if !success {
+        println!("No pair of numbers which adds to 2020 was found :(")
+    }
 }
 
 fn is_value_in_sorted_slice(value: u32, slice: &[u32]) -> bool {
