@@ -23,19 +23,25 @@ fn main() {
     numbers.sort();
     println!("{:?}", numbers);
 
-    let mut success: bool = false;
     let numbers_slice = &numbers[..];
-    for x in numbers_slice {
-        let needed_value: u32 = 2020 - x;
-        success = is_value_in_sorted_slice(needed_value, numbers_slice);
-        if success {
-            println!("{} * {} = {}", x, needed_value, x * needed_value);
-            break;
+    let pair = find_two_values_sum(2020, numbers_slice);
+
+    if pair.0 == 0 && pair.1 == 0 {
+        println!("No pair of numbers which adds to 2020 was found :(")
+    } else {
+        println!("{} * {} = {}", pair.0, pair.1, pair.0 * pair.1);
+    }
+}
+
+// Returns (0, 0) if not found
+fn find_two_values_sum(sum: u32, sorted_slice: &[u32]) -> (u32, u32) {
+    for x in sorted_slice {
+        let needed_value: u32 = sum - x;
+        if is_value_in_sorted_slice(needed_value, sorted_slice) {
+            return (*x, needed_value);
         }
     }
-    if !success {
-        println!("No pair of numbers which adds to 2020 was found :(")
-    }
+    return (0, 0);
 }
 
 fn is_value_in_sorted_slice(value: u32, slice: &[u32]) -> bool {
