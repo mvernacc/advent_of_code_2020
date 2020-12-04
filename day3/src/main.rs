@@ -1,12 +1,21 @@
 use std::fs;
-use std::convert::TryInto;
 use std::convert::TryFrom;
 
 fn main() {
     let contents = fs::read_to_string("./input.txt").unwrap();
     let terrain = load_terrain(&contents);
-    let tree_count = count_trees(0, 3, 1, &terrain);
-    println!("{}", tree_count);
+
+    // Part 1.
+    let tree_count_31 = count_trees(0, 3, 1, &terrain);
+    println!("Part 1: trees on path = {}", tree_count_31);
+
+    // Part 2.
+    let tree_count_11 = count_trees(0, 1, 1, &terrain);
+    let tree_count_51 = count_trees(0, 5, 1, &terrain);
+    let tree_count_71 = count_trees(0, 7, 1, &terrain);
+    let tree_count_12 = count_trees(0, 1, 2, &terrain);
+    let product = tree_count_11 * tree_count_31 * tree_count_51 * tree_count_71 * tree_count_12;
+    println!("Part 2: product of the tree counts = {}", product);
 }
 
 /// Parse the content of the input file.
@@ -62,5 +71,36 @@ mod tests {
         let terrain = load_terrain(&contents);
         let tree_count = count_trees(0, 3, 1, &terrain);
         assert_eq!(tree_count, 7);
+    }
+    #[test]
+    fn test_example_input_11() {
+        let contents = fs::read_to_string("./test_input.txt").unwrap();
+        let terrain = load_terrain(&contents);
+        let tree_count = count_trees(0, 1, 1, &terrain);
+        assert_eq!(tree_count, 2);
+    }
+
+    #[test]
+    fn test_example_input_51() {
+        let contents = fs::read_to_string("./test_input.txt").unwrap();
+        let terrain = load_terrain(&contents);
+        let tree_count = count_trees(0, 5, 1, &terrain);
+        assert_eq!(tree_count, 3);
+    }
+
+    #[test]
+    fn test_example_input_71() {
+        let contents = fs::read_to_string("./test_input.txt").unwrap();
+        let terrain = load_terrain(&contents);
+        let tree_count = count_trees(0, 7, 1, &terrain);
+        assert_eq!(tree_count, 4);
+    }
+
+    #[test]
+    fn test_example_input_12() {
+        let contents = fs::read_to_string("./test_input.txt").unwrap();
+        let terrain = load_terrain(&contents);
+        let tree_count = count_trees(0, 1, 2, &terrain);
+        assert_eq!(tree_count, 2);
     }
 }
