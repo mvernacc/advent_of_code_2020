@@ -9,33 +9,49 @@ fn main() {
 }
 
 fn count_valid_passports(text: &str) -> u32 {
+    let verbose = false;
+
     let passports = text
         .trim()
         .split("\n\n")
         .collect::<Vec<&str>>();
 
     let mut field_regexes = HashMap::new();
-    field_regexes.insert("byr", Regex::new(r"byr:(\d{4})").unwrap());
-    field_regexes.insert("iyr", Regex::new(r"iyr:(\d{4})").unwrap());
-    field_regexes.insert("eyr", Regex::new(r"eyr:(\d{4})").unwrap());
-    field_regexes.insert("hgt", Regex::new(r"hgt:(\d+)(in|cm)").unwrap());
-    field_regexes.insert("hcl", Regex::new(r"hcl:#[a-f0-9]{6}").unwrap());
-    field_regexes.insert("ecl", Regex::new(r"ecl:(amb|blu|brn|gry|grn|hzl|oth)").unwrap());
-    field_regexes.insert("pid", Regex::new(r"pid:\d{9}").unwrap());
+    field_regexes.insert("byr", Regex::new(r"byr:(\d{4})\b").unwrap());
+    field_regexes.insert("iyr", Regex::new(r"iyr:(\d{4})\b").unwrap());
+    field_regexes.insert("eyr", Regex::new(r"eyr:(\d{4})\b").unwrap());
+    field_regexes.insert("hgt", Regex::new(r"hgt:(\d+)(in|cm)\b").unwrap());
+    field_regexes.insert("hcl", Regex::new(r"hcl:#[a-f0-9]{6}\b").unwrap());
+    field_regexes.insert("ecl", Regex::new(r"ecl:(amb|blu|brn|gry|grn|hzl|oth)\b").unwrap());
+    field_regexes.insert("pid", Regex::new(r"pid:\d{9}\b").unwrap());
 
     let mut valid_passport_count: u32 = 0;
-    for passport in passports {
+    for (i, passport) in passports.iter().enumerate() {
+        if verbose {
+            println!("\n{}", passport);
+        }
+
         let mut valid = true;
         for (field, re) in &field_regexes {
+            if verbose {
+                print!("Checking {}: ", field);
+            }
             let cap = match re.captures_iter(passport).next() {
                 None => {
+                    if verbose {
+                        print!("missing, invalid.\n");
+                    }
                     valid = false;
                     break;
                 },
                 Some(cap) => cap,
             };
 
-            valid = match *field {
+            if verbose {
+                print!("present, ");
+            }
+
+            valid = match &field[..] {
                 "byr" => {
                     let year = cap[1].parse::<u32>().unwrap();
                     1920 <= year && year <= 2002
@@ -60,10 +76,22 @@ fn count_valid_passports(text: &str) -> u32 {
                 // Other fields to not need additional validation (beyond matching the regex).
                 _ => true,
             };
-            if !valid { break; }
+            if !valid {
+                if verbose {
+                    print!("invalid.\n");
+                }
+                break;
+            } else if verbose {
+                print!("valid.\n");
+            }
         }
         if valid {
+            if verbose {
+                println!("Passport valid.");
+            }
             valid_passport_count += 1;
+        } else if verbose {
+            println!("Passport invalid.")
         }
     }
     valid_passport_count
