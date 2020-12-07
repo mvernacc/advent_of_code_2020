@@ -26,7 +26,7 @@ fn count_valid_passports(text: &str) -> u32 {
     field_regexes.insert("pid", Regex::new(r"pid:\d{9}\b").unwrap());
 
     let mut valid_passport_count: u32 = 0;
-    for (i, passport) in passports.iter().enumerate() {
+    for passport in passports.iter() {
         if verbose {
             println!("\n{}", passport);
         }
