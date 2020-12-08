@@ -11,13 +11,34 @@ fn main() {
     // Part 1: Find the maximum seat ID of the seat codes in the input list.
     let mut max_seat_id: u32 = 0;
     for seat_code in seat_codes.iter() {
-        let (row, column) = decode_seat(seat_code).unwrap();
-        let seat_id = row * 8 + column;
+        let seat_id = compute_seat_id(seat_code).unwrap();
         if seat_id > max_seat_id {
             max_seat_id = seat_id;
         }
     }
-    println!("max seat ID = {}", max_seat_id);
+    println!("Max seat ID = {}", max_seat_id);
+
+    // Part 2: Find the missing seat ID.
+    let mut missing_seat_id: u32 = 0;
+    let mut seat_ids = Vec::<u32>::new();
+    for seat_code in seat_codes.iter() {
+        seat_ids.push(compute_seat_id(seat_code).unwrap());
+    }
+    seat_ids.sort();
+    for i in 0..(seat_ids.len() - 1) {
+        if seat_ids[i] + 1 != seat_ids[i + 1] {
+            missing_seat_id = seat_ids[i] + 1;
+            break;
+        }
+    }
+    println!("Missing seat ID = {}", missing_seat_id);
+}
+
+fn compute_seat_id(partition_code: &str) -> Option<u32> {
+    match decode_seat(partition_code) {
+        None => None,
+        Some((row, column)) => Some(row * 8 + column),
+    }
 }
 
 fn decode_seat(partition_code: &str) -> Option<(u32, u32)> {
