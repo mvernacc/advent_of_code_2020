@@ -1,12 +1,23 @@
+use std::fs;
 use intbits::Bits;
 
 fn main() {
-    let mut x: u32 = 0;
-    x.set_bit(2, true);
-    println!("{}", x);
-    let (row, column) = decode_seat("FBFBBFFRLR").unwrap();
-    println!("row: {},  column: {}", row, column);
-
+    let text = fs::read_to_string("./input.txt").unwrap();
+    let seat_codes = text
+        .trim()
+        .split("\n")
+        .collect::<Vec<&str>>();
+    
+    // Part 1: Find the maximum seat ID of the seat codes in the input list.
+    let mut max_seat_id: u32 = 0;
+    for seat_code in seat_codes.iter() {
+        let (row, column) = decode_seat(seat_code).unwrap();
+        let seat_id = row * 8 + column;
+        if seat_id > max_seat_id {
+            max_seat_id = seat_id;
+        }
+    }
+    println!("max seat ID = {}", max_seat_id);
 }
 
 fn decode_seat(partition_code: &str) -> Option<(u32, u32)> {
@@ -40,4 +51,38 @@ fn decode_seat(partition_code: &str) -> Option<(u32, u32)> {
         column.set_bit(column_bits - i - 1, bit);
     }
     return Some((row, column));
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_part1_example1() {
+        let (row, column) = decode_seat("FBFBBFFRLR").unwrap();
+        assert_eq!(row, 44);
+        assert_eq!(column, 5);
+    }
+
+    #[test]
+    fn test_part1_example2() {
+        let (row, column) = decode_seat("BFFFBBFRRR").unwrap();
+        assert_eq!(row, 70);
+        assert_eq!(column, 7);
+    }
+
+    #[test]
+    fn test_part1_example3() {
+        let (row, column) = decode_seat("FFFBBBFRRR").unwrap();
+        assert_eq!(row, 14);
+        assert_eq!(column, 7);
+    }
+
+    #[test]
+    fn test_part1_example4() {
+        let (row, column) = decode_seat("BBFFBBFRLL").unwrap();
+        assert_eq!(row, 102);
+        assert_eq!(column, 4);
+    }
 }
