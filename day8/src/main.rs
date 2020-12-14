@@ -15,12 +15,14 @@ fn main() {
         accumulator);
 }
 
+#[derive(Clone, PartialEq, Debug)]
 enum Operation {
     ACC, // Increases or decreases the accumulator value.
     JMP, // Jumps to a new instruction relative to itself.
     NOP, // No operation.
 }
 
+#[derive(Clone)]
 struct Instruction {
     operation: Operation,
     argument: i32,
@@ -90,6 +92,37 @@ fn run_program(program: &Vec<Instruction>) -> (i32, TerminationCondition) {
     }
 }
 
+/// Solve Part 2.
+/// Returns (accumulator value at termination for the fixed program, index of corrupt instruction). 
+/// Computational effort: This should run on O(n^2) time, where n is the number of instructions in the program.
+///     - Need to check O(n) JMP/NOP substitutions.
+///     - Checking each substitution requires iterating through O(n) instructions.
+fn fix_corrupt_instruction(original_program: &Vec<Instruction>) -> (i32, usize) {
+    for i in 0..original_program.len() {
+        if original_program[i].operation == Operation::ACC {
+            continue;
+        }
+
+        // Change instruction `i` from JMP -> NOP or visa versa.
+        let mut new_program = original_program.clone();
+        if new_program[i].operation == Operation::NOP {
+            new_program[i].operation = Operation::JMP;
+        } else {
+            new_program[i].operation = Operation::NOP;
+        }
+
+        // See if the modified program reaches its end.
+        let (accumulator, term_cond) = run_program(&new_program);
+        if term_cond == TerminationCondition::ReachedEnd {
+            println!("End reached by changing instruction {:} to {:?}",
+                i, new_program[i].operation);
+            return (accumulator, i);
+        }
+    }
+    println!("Could not find a NOP->JMP or JMP->NOP change which makes the program reach its end.");
+    panic!();
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -111,6 +144,15 @@ mod tests {
         program[7].operation = Operation::NOP;
         let (accumulator, term_cond) = run_program(&program);
         assert_eq!(TerminationCondition::ReachedEnd, term_cond);
+        assert_eq!(8, accumulator);
+    }
+
+    #[test]
+    fn test_fix_example () {
+        let source = fs::read_to_string("./example_input.txt").unwrap();
+        let program = parse_program(&source);
+        let (accumulator, i_corrupt) = fix_corrupt_instruction(&program);
+        assert_eq!(7, i_corrupt);
         assert_eq!(8, accumulator);
     }
 }
