@@ -7,11 +7,13 @@ use regex::Regex;
 
 
 fn main() {
-    let text = fs::read_to_string("./example_input.txt").unwrap();
+    let text = fs::read_to_string("./input.txt").unwrap();
     let graph = parse_graph_from_text(&text);
-    println!("{:?}", Dot::new(&graph));
-    let containing_bags = compute_bags_that_can_contain(&graph, "shiny gold");
-    println!("{:?}", containing_bags);
+    // println!("{:?}", Dot::new(&graph));
+    let bag_color = "shiny gold";
+    let containing_bags = compute_bags_that_can_contain(&graph, bag_color);
+    println!("Number of bag colors which can eventually contain at least 1 '{:}' bag: {:}",
+    bag_color, containing_bags.len());
 }
 
 
@@ -53,17 +55,17 @@ fn parse_graph_from_text(text: &str) -> DiGraphMap<&str, u32> {
 }
 
 fn add_rule_to_graph<'a, 'b>(mut graph: DiGraphMap<&'a str, u32>, rule_str: &'a str) -> DiGraphMap::<&'a str, u32> {
-    let (subject_bag_type, contained) = parse_rule(&rule_str);
+    let (subject_bag_color, contained) = parse_rule(&rule_str);
 
-    if !graph.contains_node(subject_bag_type) {
-        graph.add_node(subject_bag_type);
+    if !graph.contains_node(subject_bag_color) {
+        graph.add_node(subject_bag_color);
     }
 
-    for (other_bag_type, number_in_subject_bag) in contained {
-        if !graph.contains_node(&other_bag_type) {
-            graph.add_node(other_bag_type);
+    for (other_bag_color, number_in_subject_bag) in contained {
+        if !graph.contains_node(&other_bag_color) {
+            graph.add_node(other_bag_color);
         }
-        graph.add_edge(subject_bag_type, other_bag_type, number_in_subject_bag);
+        graph.add_edge(subject_bag_color, other_bag_color, number_in_subject_bag);
     }
     graph
 }
@@ -75,19 +77,19 @@ fn parse_rule(rule_str: &str) -> (&str, Vec::<(&str, u32)>) {
 
     }
     let cap_subject = RE_SUBJECT.captures(rule_str).unwrap();
-    let subject_bag_type = cap_subject.get(1).unwrap().as_str();
+    let subject_bag_color = cap_subject.get(1).unwrap().as_str();
 
     let mut contains = Vec::<(&str, u32)>::new();
     for cap in RE_CONTAINS.captures_iter(rule_str) {
         contains.push((
-            // Color of the contained bag type.
+            // Color of the contained bag.
             cap.get(2).unwrap().as_str(),
-            // Number of this bag type which are contained in the subject bag type.
+            // Number of this bag type which are contained in the subject bag color.
             cap[1].parse::<u32>().unwrap()
         ));
     }
 
-    (subject_bag_type, contains)
+    (subject_bag_color, contains)
 }
 
 #[cfg(test)]
@@ -97,8 +99,8 @@ mod tests {
     #[test]
     fn test_parse_rule_1 () {
         let rule_str = "light red bags contain 1 bright white bag, 2 muted yellow bags.";
-        let (subject_bag_type, contains) = parse_rule(rule_str);
-        assert_eq!("light red", subject_bag_type);
+        let (subject_bag_color, contains) = parse_rule(rule_str);
+        assert_eq!("light red", subject_bag_color);
         assert_eq!(2, contains.len());
         assert_eq!("bright white", contains[0].0);
         assert_eq!(1, contains[0].1);
