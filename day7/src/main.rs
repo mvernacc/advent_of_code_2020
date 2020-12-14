@@ -2,20 +2,37 @@
 extern crate lazy_static;
 
 use std::{fs, collections::HashSet};
-use petgraph::{graphmap::DiGraphMap, Direction, dot::Dot};
+use petgraph::{graphmap::DiGraphMap, Direction};
 use regex::Regex;
 
 
 fn main() {
     let text = fs::read_to_string("./input.txt").unwrap();
     let graph = parse_graph_from_text(&text);
-    // println!("{:?}", Dot::new(&graph));
     let bag_color = "shiny gold";
-    let containing_bags = compute_bags_that_can_contain(&graph, bag_color);
+
+    // Part 1.
+    let bags_that_can_contain = compute_bags_that_can_contain(&graph, bag_color);
     println!("Number of bag colors which can eventually contain at least 1 '{:}' bag: {:}",
-    bag_color, containing_bags.len());
+        bag_color, bags_that_can_contain.len());
+
+    // Part 2.
+    let num_bags_inside = compute_bags_inside(&graph, bag_color);
+    println!("Number of bags required inside a '{:}' bag: {:}",
+        bag_color, num_bags_inside);
 }
 
+
+/// Compute the number of bags inside a bag of a given color
+fn compute_bags_inside(graph: &DiGraphMap<&str, u32>, bag_color: &str) -> u32 {
+    assert!(graph.contains_node(bag_color));
+
+    let mut count = 0;
+    for v in graph.neighbors_directed(bag_color, Direction::Outgoing) {
+        count += graph.edge_weight(bag_color, v).unwrap() * (1 + compute_bags_inside(graph, v));
+    }
+    count
+}
 
 /// Compute all the bag colors which can eventually contain a bag of color `start_bag`.
 fn compute_bags_that_can_contain<'a>(graph: &DiGraphMap<&'a str, u32>, start_bag: &'a str) -> HashSet<&'a str> {
@@ -116,5 +133,18 @@ mod tests {
         assert!(containing_bags.contains("muted yellow"));
         assert!(containing_bags.contains("dark orange"));
         assert!(containing_bags.contains("light red"));
+    }
+    
+    #[test]
+    fn compute_bags_inside_example1 () {
+        let text = fs::read_to_string("./example_input.txt").unwrap();
+        let graph = parse_graph_from_text(&text);
+
+        assert_eq!(0, compute_bags_inside(&graph, "faded blue"));
+        assert_eq!(0, compute_bags_inside(&graph, "dotted black"));
+        assert_eq!(11, compute_bags_inside(&graph, "vibrant plum"));
+        assert_eq!(7, compute_bags_inside(&graph, "dark olive"));
+        assert_eq!(32, compute_bags_inside(&graph, "shiny gold"));
+
     }
 }
