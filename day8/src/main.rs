@@ -1,15 +1,16 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::{fs, collections::HashMap};
+use std::{fs, collections::HashSet};
 use std::convert::TryFrom;
 use regex::Regex;
 
 
 fn main() {
     let source = fs::read_to_string("./input.txt").unwrap();
-        let program = parse_program(&source);
-        let accumulator = run_program_acc_value_on_instruction_repeat(&program);
+    let program = parse_program(&source);
+    let (accumulator, term_cond) = run_program(&program);
+    assert_eq!(TerminationCondition::RepeatedInstruction, term_cond);
     println!("Immediately before the program would run an instruction a second time, the value in the accumulator is {:}",
         accumulator);
 }
@@ -48,22 +49,34 @@ fn parse_program(source: &str) -> Vec<Instruction> {
     program
 }
 
-/// Run the program until any instruction is called a second time. Return the value of the accumulator
-/// just before this instruction is executed.
-fn run_program_acc_value_on_instruction_repeat(program: &Vec<Instruction>) -> i32 {
+#[derive(PartialEq, Debug)]
+enum TerminationCondition {
+    RepeatedInstruction,
+    ReachedEnd,
+}
+
+/// Run the program until any instruction is called a second time, or the program terminates by
+/// attempting to execute an instruction immediately after the last instruction in the file.
+/// Return the value of the accumulator one of the termination conditions happens.
+fn run_program(program: &Vec<Instruction>) -> (i32, TerminationCondition) {
     let mut accumulator: i32 = 0;
     let mut location: usize = 0;
-    let mut exec_count = HashMap::<usize, u32>::new();
+    let mut executed_locations = HashSet::<usize>::new();
 
     loop {
         // Keep track of which instructions we've executed before.
-        if exec_count.contains_key(&location) {
-            return accumulator;
+        if executed_locations.contains(&location) {
+            return (accumulator, TerminationCondition::RepeatedInstruction);
         }
         else {
-            exec_count.insert(location, 1);
+            executed_locations.insert(location);
+        }
+        // Check if we've reached the end of the program.
+        if location == program.len() {
+            return (accumulator, TerminationCondition::ReachedEnd);
         }
 
+        // Execute this instruction.
         let instruction = &program[location];
         match instruction.operation {
             Operation::ACC => {
@@ -86,7 +99,18 @@ mod tests {
     fn test_acc_repeat_example () {
         let source = fs::read_to_string("./example_input.txt").unwrap();
         let program = parse_program(&source);
-        let accumulator = run_program_acc_value_on_instruction_repeat(&program);
+        let (accumulator, term_cond) = run_program(&program);
+        assert_eq!(TerminationCondition::RepeatedInstruction, term_cond);
         assert_eq!(5, accumulator);
+    }
+
+    #[test]
+    fn test_reach_end_example () {
+        let source = fs::read_to_string("./example_input.txt").unwrap();
+        let mut program = parse_program(&source);
+        program[7].operation = Operation::NOP;
+        let (accumulator, term_cond) = run_program(&program);
+        assert_eq!(TerminationCondition::ReachedEnd, term_cond);
+        assert_eq!(8, accumulator);
     }
 }
