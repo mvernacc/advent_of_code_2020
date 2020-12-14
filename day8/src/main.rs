@@ -9,10 +9,17 @@ use regex::Regex;
 fn main() {
     let source = fs::read_to_string("./input.txt").unwrap();
     let program = parse_program(&source);
+
+    // Part 1.
     let (accumulator, term_cond) = run_program(&program);
     assert_eq!(TerminationCondition::RepeatedInstruction, term_cond);
     println!("Immediately before the program would run an instruction a second time, the value in the accumulator is {:}",
         accumulator);
+
+    // Part 2.
+    let (accumulator, i_corrupt) = fix_corrupt_instruction(&program);
+    println!("If instuction {:} is fixed, the program terminates with accumulator value {:}.",
+        i_corrupt, accumulator);
 }
 
 #[derive(Clone, PartialEq, Debug)]
