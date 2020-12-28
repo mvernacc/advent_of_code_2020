@@ -14,6 +14,11 @@ fn main() {
     let difference_counts: [u32; 4] = *compute_jolt_differences(&adapters).unwrap();
     println!("Number of 1-jolt differences multiplied by the number of 3-jolt differences: {}",
         difference_counts[1] * difference_counts[3]);
+    
+    // Part 2
+    let path_count = count_paths_outlet_to_device(&adapters);
+    println!("Number of distinct ways you can arrange the adapters to connect the charging outlet to your device: {}",
+        path_count);
 }
 
 fn compute_jolt_differences(adapters: &[u32]) -> Option<Box<[u32; 4]>> {
@@ -76,7 +81,7 @@ fn build_graph(adapters: &[u32]) -> Box<DiGraphMap<u32, ()>> {
 }
 
 /// Count the paths by which the 0-joltage outlet can connect to the device.
-fn count_paths_outlet_to_device(adapters: &[u32]) -> u32 {
+fn count_paths_outlet_to_device(adapters: &[u32]) -> u64 {
     let graph = *build_graph(&adapters);
 
     let mut joltage_levels = graph.nodes().collect::<Vec<u32>>();
@@ -86,7 +91,7 @@ fn count_paths_outlet_to_device(adapters: &[u32]) -> u32 {
 
     // Node at joltage level `i` has `paths_to_end[i]` paths to reach the end node.
     // This is the memoization data structure for the dynamic programming solution.
-    let mut paths_to_end = HashMap::<u32, u32>::new();
+    let mut paths_to_end = HashMap::<u32, u64>::new();
     paths_to_end.insert(joltage_levels[0], 1);
 
     // Count the number of paths from the `0` node (i.e. `joltage_levels.last()`)
