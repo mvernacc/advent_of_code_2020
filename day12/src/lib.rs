@@ -7,8 +7,8 @@ fn sum_as_string(a: usize, b: usize) -> PyResult<String> {
     Ok((a + b).to_string())
 }
 
-#[pyfunction]
-fn nav_instructions_manhattan_distance(nav_instructions_text: &str) -> PyResult<i32> {
+#[pyfunction(verbose=false)]
+fn nav_instructions_manhattan_distance(nav_instructions_text: &str, verbose: bool) -> PyResult<i32> {
     let nav_instructions = nav_instructions_text
         .trim()
         .split("\n")
@@ -18,9 +18,12 @@ fn nav_instructions_manhattan_distance(nav_instructions_text: &str) -> PyResult<
     let mut x: i32 = 0;
     let mut y: i32 = 0;
     for instruction in nav_instructions.iter() {
+        if verbose {
+            println!("x: {}, y: {}, heading: {}, inst: {}", x, y, heading, instruction);
+        }
+
         let action: char = instruction.chars().nth(0).unwrap();
         let arg = instruction[1..].parse::<i32>().unwrap();
-        println!("x: {}, y: {}, heading: {}, inst: {}", x, y, heading, instruction);
         match action {
             'N' => y += arg,
             'S' => y -= arg,
@@ -92,7 +95,7 @@ mod tests {
     #[test]
     fn nav_instructions_manhattan_distance_example() {
         let nav_instructions_text = "F10\nN3\nF7\nR90\nF11";
-        let result = nav_instructions_manhattan_distance(&nav_instructions_text);
+        let result = nav_instructions_manhattan_distance(&nav_instructions_text, true);
         let dist = result.ok().unwrap();
         assert_eq!(dist, 25);
     }
